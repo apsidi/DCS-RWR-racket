@@ -1,0 +1,42 @@
+See 'ref' and http://wiki.hoggit.us/view/RWR#Threat_Symbology
+Largely from http://forums.eagle.ru/showthread.php?t=97079 and
+the linked PDFs (included under 'ref'). See 'F-15C\ DCS\ Flaming\
+Cliffs\ Flight\ Manual\ EN.pdf' starting on pages marked 75
+for a discussion of the ECM, RWS, RWR, TEWS systems.  Also check
+http://wiki.hoggit.us/view/DCS_Threat_Information for more specific
+information
+
+
+RWR/RWS has priority logic: one primary threat, plus a list of secondary
+threats.
+  The priority-sorted list of threats can influence whether and how a
+  threat is display on the RWR scope.
+
+In order from highest to lowest:
+1. missile launch 
+2. STT or a similar lock mode 
+3. common types of threats:
+	a. airborne radar 
+	b. long range radar 
+	c. mid range radar 
+	d. short range radar
+	e. early warning system 
+	f. AWACS radar
+4. maximum signal strength
+
+RWS "Radar Warning System" does NOT define the distance to the
+emitter. Only received signal strength and priority.
+
+AN/ALR-56C is the RWR "Radar Warning Receiver" portion of the TEWS
+"Tactical Electronic Warfare System"
+
+RWR can receive radar signals for a 360* range around the aircraft, in a
+90* donut - that is, +/- 180 degrees, +/- 45 degrees elevation. The top
+(12 o'clock) of the scope represents directly in front of the aircraft.
+Max number of threats on the RWR scope is 16. Threats are shown based
+on priority, so if 17 threats are detected, the lowest threat would
+not be shown.  Can be in two display modes - show all radar threats,
+and show only locked threats.  Distance from the center of the scope
+(the center represents the pilot's aircraft), is proportional to the
+received signal strength. Priority can also factor into this, as early
+warning radars and AWACS radars will not be displayed in the inner circle.
