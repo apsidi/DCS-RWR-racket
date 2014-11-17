@@ -13,9 +13,10 @@
 		   [height 400]
 		   )
   )
-
-
-(define jsonstrexample "{\"ID\":\"16777984\",\"Power\":0.794159,\"Azimuth\":0.043698,\"Priority\":260.79,\"SignalType\":\"lock\",\"Type\":\"mig-29\"}" )
+(define (alist->string l) 
+  ;http://lists.racket-lang.org/users/archive/2010-November/042915.html
+    (string-join 
+          (map (lambda (x) (format "~s=~s" (car x) (cdr x))) l) " "))
 
 (define (convert-to-xy distance azimuth)
   (values (* distance (cos azimuth ) )
@@ -47,31 +48,31 @@
 	 (define/public (get-frame) frame)
 	 (define/public (create) 
 			(set! canvas (new canvas% [parent frame]
-			     [paint-callback
-			       (lambda (canvas dc)
-				 (send dc set-brush "black" 'transparent)
-				 (send dc set-background "black")
-				 (send dc set-text-mode 'transparent)
-				 (send dc set-text-foreground "green")
-				 (send dc set-smoothing 'smoothed)
-				 (send dc clear)
+					  [paint-callback
+					    (lambda (canvas dc)
+					      (send dc set-brush "black" 'transparent)
+					      (send dc set-background "black")
+					      (send dc set-text-mode 'transparent)
+					      (send dc set-text-foreground "green")
+					      (send dc set-smoothing 'smoothed)
+					      (send dc clear)
 
 
-				 (send dc set-scale scopescale scopescale)
-				 (send dc set-pen "green" 1 'solid)
-				 (send dc draw-rectangle 0 0 400 400)
-				 (send dc set-pen "green" 2 'solid)
-				 (draw-threatscope dc)
+					      (send dc set-scale scopescale scopescale)
+					      (send dc set-pen "green" 1 'solid)
+					      (send dc draw-rectangle 0 0 400 400)
+					      (send dc set-pen "green" 2 'solid)
+					      (draw-threatscope dc)
 
-				 (send dc set-pen "green" 10 'solid)
-				 (send dc set-scale threaticonscale threaticonscale)
-				 (draw-threats dc)
+					      (send dc set-pen "green" 10 'solid)
+					      (send dc set-scale threaticonscale threaticonscale)
+					      (draw-threats dc)
 
-				 ;(send dc scale .5 .5)
+					      ;(send dc scale .5 .5)
 
-				 )
-			       ]
-			     )
+					      )
+					    ]
+					  )
 			  )
 			(send frame show #t)
 			this)
@@ -84,44 +85,65 @@
 	 )
   )
 (define (get-threatstring type)
-  "29"
+  type
   )
-(define (airborne-type type)
-  1
+(define (airborne-type type typeints)
+  (if (= (car typeints) 1) #t #f)
   )
-(define (high-priority threat%) 
+(define (high-priority threat% typeints) 
   1
   )
 (define threat%
   (class object%
-	 (init-field [jsonstr ""])
-	 (define jsexpr null)
+	 (init-field [jsonstr ""][jsexpr null])
 	 (define azimuth 0)
 	 (define id 1)
 	 (define power 0.5)
 	 (define priority 100)
 	 (define signaltype "")
 	 (define radartype "")
-	 (define airborne 0)
-	 (define highpriority 0)
-	 (define primary 0)
-	 (define tracking 0)
-	 (define newthreat 0)
+	 (define airborne #f)
+	 (define highpriority #f)
+	 (define primary #f)
+	 (define tracking #f)
+	 (define newthreat #f)
+	 (define typeints '())
 	 (super-new)
+	 (define/public (get-highpriority) highpriority)
+	 (define/public (get-priority) priority)
+	 (define/public (get-power) power)
+	 (define/public (get-id) id)
+	 (define/public (get-typeints) typeints)
+	 (define/public (get-newthreat) newthreat)
+	 (define/public (get-primary) primary)
+	 (define/public (get-azimuth) azimuth)
+	 (define/public (set-highpriority tf)
+			(set! highpriority tf)
+			)
+	 (define/public (set-newthreat tf)
+			(set! newthreat tf)
+			)
+	 (define/public (set-primary tf)
+			(set! primary tf)
+			)
+	 (define/public (get-distance-from-center) (* 1 (/ threaticonwidth 4)))
 	 (define/public (parse)
-			(set! jsexpr (string->jsexpr jsonstr) )
+			(if (equal? jsexpr null) 
+			  (set! jsexpr (string->jsexpr jsonstr) )
+			  null)
 			(set! azimuth (hash-ref jsexpr 'Azimuth) )
 			(set! id (hash-ref jsexpr 'ID) )
 			(set! power (hash-ref jsexpr 'Power) )
 			(set! priority (hash-ref jsexpr 'Priority) )
 			(set! signaltype (hash-ref jsexpr 'SignalType) )
 			(set! radartype (hash-ref jsexpr 'Type) )
-			(define airborne (airborne-type radartype) )
-			(define highpriority (high-priority this))
+			(if (member 'TypeInts (hash-keys jsexpr))
+			  (set! typeints (hash-ref jsexpr 'TypeInts))
+			  null)
+			(set! airborne (airborne-type radartype typeints) )
+			(set! highpriority (high-priority this typeints))
 
 			this)
-	 (define/public (get-distance-from-center) (* 1 (/ threaticonwidth 4)))
-	 (define/public (get-azimuth) azimuth)
 	 (define/public (draw dc centerx centery) 
 			(define x (scale-up-and-center centerx threaticonscale))
 			; x and y coordinates to center the threatobj icon on
@@ -139,6 +161,10 @@
 			(draw-threatstring dc threat-string (+ x 200) (+ y 200) )
 
 			this)
+	 (define/public (summarize)
+			(printf "~a  ~a  ~a\t~a ~a\n" signaltype priority typeints id radartype)
+
+			)
 	 )
   )
 
@@ -167,17 +193,50 @@
 (define (draw-threats dc)
   ;draw network threats with calls to draw-threat
   ; remember, per spec we only draw up to 16 threats at a time.
-  ; must sort threats by priority first, then draw the first 16
-  (define demothreat 
-    (new threat% 
-	 [ jsonstr jsonstrexample ] 
-	 ) 
+  ; must sort threats by priority, highest first, then draw the first 16
+  (define jsonline "{ \"Mode\":0.000000, \"MTime\": 10.600000, \"Emitters\":[ { \"ID\":\"16781568\", \"Power\":0.400990, \"Azimuth\":-2.259402, \"Priority\":160.400986, \"SignalType\":\"scan\", \"Type\":\"F-15C\", \"TypeInts\":[1.000000,1.000000,1.000000,6.000000] },{ \"ID\":\"16778496\", \"Power\":0.719001, \"Azimuth\":-1.720845, \"Priority\":110.719002, \"SignalType\":\"scan\", \"Type\":\"a-50\", \"TypeInts\":[1.000000,1.000000,5.000000,26.000000] },{ \"ID\":\"16777472\", \"Power\":0.183416, \"Azimuth\":1.909581, \"Priority\":130.183411, \"SignalType\":\"scan\", \"Type\":\"TAKR Kuznetsov\", \"TypeInts\":[3.000000,12.000000,12.000000,1.000000] },{ \"ID\":\"16778240\", \"Power\":0.251832, \"Azimuth\":-0.261481, \"Priority\":160.251831, \"SignalType\":\"scan\", \"Type\":\"mig-29c\", \"TypeInts\":[1.000000,1.000000,1.000000,50.000000] }] }")
+
+  (define threat-list '())
+
+  (define js (string->jsexpr jsonline))
+  ; parse the objects from json
+  (define mode (hash-ref js 'Mode))
+  (define ModelTime (hash-ref js 'MTime))
+  (define Emitters (hash-ref js 'Emitters))
+
+  (printf "Time: ~a\n" ModelTime)
+
+  (map 
+    (lambda (jsemit) 
+      (set! threat-list (append threat-list (list
+		 (new threat% 
+		      [jsexpr jsemit ]
+		      [jsonstr ""]
+		      )
+		 )))
+      ) 
+       Emitters)
+  ; sort the  list, take highest 16 (per the spec)
+  (define sorted-threat-list
+    (sort threat-list (lambda (x y) (if (< (send x get-priority) (send y get-priority) ) #t #f)) )
     )
-  (send demothreat parse)
-  (define r (send demothreat get-distance-from-center))
-  (define a (send demothreat get-azimuth))
-  (define-values ( x y ) (convert-to-xy r azimuth))
-  (send demothreat draw dc (+ x 200) (+ y 200))
+  (define short-threat-list 
+    (if (> (length sorted-threat-list) 16)
+      (take sorted-threat-list 16)
+      sorted-threat-list
+      ))
+  ; map across that sublist of 16 the function that draws and handles them
+
+  (define (threat-draw threatobj)
+    (send threatobj parse)
+    (define r (send threatobj get-distance-from-center))
+    (define a (send threatobj get-azimuth))
+    (define-values ( x y ) (convert-to-xy r a))
+    (send threatobj draw dc (+ x 200) (+ y 200))
+    )
+  (map threat-draw short-threat-list)
+  (map (lambda (x) (send x summarize)) short-threat-list)
+
   )
 (define (draw-threatscope dc)
   ; draws the basic elements of the threatscope
@@ -240,19 +299,15 @@
   )
 
 
+
+
 (define i 0 )
-(define azimuth 0)
-
-(define rwr (new rwr% [frame frame]) )
-(define f (send rwr create))
-
+(define rwr (new rwr% [frame frame]) ) ;instantiate
+(define f (send rwr create)) ;create the window and display
 (define (main i)
-  (sleep 0.001)
+  (sleep 0.002)
   (set! i (+ i 1) )
-  (set! azimuth (+ azimuth .01))
-  (send f update)
-  (printf "~a\n" azimuth)
-  (main i)
+  (send f update) ;force an update of the display
+  (main i); 'loop'
   )
-
-;(main i)
+(main i)
