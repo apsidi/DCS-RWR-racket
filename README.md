@@ -31,7 +31,8 @@ lua file must currently be edited to include hostname or ip address of
 machine running this racket code.
 
 Example line, pretty printed:
-	{ 'Mode':0.000000, 
+
+	{ 'Mode':0.000000,
 	'MTime': 8.800000, 
 	'Emitters':[ 
 		{ 'ID':'16777472', 
