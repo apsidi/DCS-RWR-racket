@@ -2,11 +2,16 @@
 
 (require racket/gui)
 (require racket/draw)
+(require racket/tcp)
 (require json)
+
+
+
 
 (define threaticonscale .15);about accurate, maybe should be fine-tuned
 (define threaticonwidth 400);NO TOUCH
 (define scopescale 1);this should stay at 1
+(define listenport 6001)
 (define frame (new frame%
 		   [label "RWR"]
 		   [width 400]
@@ -42,8 +47,10 @@
 (define rwr%
   (class object%
 	 (init-field frame)
-	 (define canvas null)
 	 (super-new)
+	 (define canvas null)
+	 (define listener '())
+	 (define connections '())
 	 (define/public (get-canvas) canvas)
 	 (define/public (get-frame) frame)
 	 (define/public (create) 
@@ -74,14 +81,36 @@
 					    ]
 					  )
 			  )
+			(set! listener (tcp-listen listenport 2 #t))
 			(send frame show #t)
 			this)
 	 (define/public (update) 
 			(send canvas refresh-now)
 			this)
-	 (define/public (connect host port) 1);connect to a tcp server and port with our data...
-	 (define/public (accept port) 1); OR receive tcp connects on a port
-	 (define/public (parse jsonarray) 1); parse a line of json and handle it
+	 (define/public (connect host port) 1);connect to a tcp server and port
+	 (define/public (tcp-ready?) 
+			(if (tcp-accept-ready? listener)
+			  #t
+			  #f
+			); OR receive tcp connects on a port
+			)
+	 (define/public (accept)
+			(define-values (in out) (tcp-accept listener))
+			(set! connections (cons in out))
+			connections
+			)
+	 (define/public (shutdown)
+			(if (tcp-listener? listener)
+				(tcp-close listener)
+				#f
+				)
+			)
+	 (define/public (read) 
+			(if (null? connections)
+				  #f
+				  (read-json (car connections))
+				); parse a line of json and handle it
+			)
 	 )
   )
 (define (get-threatstring type)
@@ -195,14 +224,17 @@
   ; remember, per spec we only draw up to 16 threats at a time.
   ; must sort threats by priority, highest first, then draw the first 16
   (define jsonline "{ \"Mode\":0.000000, \"MTime\": 10.600000, \"Emitters\":[ { \"ID\":\"16781568\", \"Power\":0.400990, \"Azimuth\":-2.259402, \"Priority\":160.400986, \"SignalType\":\"scan\", \"Type\":\"F-15C\", \"TypeInts\":[1.000000,1.000000,1.000000,6.000000] },{ \"ID\":\"16778496\", \"Power\":0.719001, \"Azimuth\":-1.720845, \"Priority\":110.719002, \"SignalType\":\"scan\", \"Type\":\"a-50\", \"TypeInts\":[1.000000,1.000000,5.000000,26.000000] },{ \"ID\":\"16777472\", \"Power\":0.183416, \"Azimuth\":1.909581, \"Priority\":130.183411, \"SignalType\":\"scan\", \"Type\":\"TAKR Kuznetsov\", \"TypeInts\":[3.000000,12.000000,12.000000,1.000000] },{ \"ID\":\"16778240\", \"Power\":0.251832, \"Azimuth\":-0.261481, \"Priority\":160.251831, \"SignalType\":\"scan\", \"Type\":\"mig-29c\", \"TypeInts\":[1.000000,1.000000,1.000000,50.000000] }] }")
+  (define js (string->jsexpr jsonline))
+
+  (set! js (send rwr read))
+  ; parse the objects from json
 
   (define threat-list '())
 
-  (define js (string->jsexpr jsonline))
-  ; parse the objects from json
-  (define mode (hash-ref js 'Mode))
-  (define ModelTime (hash-ref js 'MTime))
-  (define Emitters (hash-ref js 'Emitters))
+  ;pull the first-level data out of js
+  (define mode (hash-ref js 'Mode)) ;the RWR mode
+  (define ModelTime (hash-ref js 'MTime)) ; the time within the simulator
+  (define Emitters (hash-ref js 'Emitters)); the array of emitters
 
   (printf "Time: ~a\n" ModelTime)
 
@@ -230,7 +262,7 @@
   (define (threat-draw threatobj)
     (send threatobj parse)
     (define r (send threatobj get-distance-from-center))
-    (define a (send threatobj get-azimuth))
+    (define a (- (/ pi 2) (send threatobj get-azimuth)))
     (define-values ( x y ) (convert-to-xy r a))
     (send threatobj draw dc (+ x 200) (+ y 200))
     )
@@ -303,9 +335,11 @@
 
 (define i 0 )
 (define rwr (new rwr% [frame frame]) ) ;instantiate
+(define (shutdown) (send rwr shutdown))
 (define f (send rwr create)) ;create the window and display
+(send rwr accept);blocks!
 (define (main i)
-  (sleep 0.002)
+  (sleep 0.012)
   (set! i (+ i 1) )
   (send f update) ;force an update of the display
   (main i); 'loop'

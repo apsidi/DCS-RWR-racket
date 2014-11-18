@@ -78,6 +78,9 @@ One can use the \*.jsonconn files as testdata in the following fashion:
 
 	$ cat tews5.jsonconn |pv -l -L 10 | nc -l -p 6000
 
+Actually, the data in tews5 is current using single quotes "'"
+when it needs double quotes for racket's JSON library to parse it.
+
 The above line will take the tews5 data, printing at 10 (-L) lines (-l)
 per second, and give that input to netcat, which will listen (-l) on port
 (-p) 6000 for incoming tcp connections.
