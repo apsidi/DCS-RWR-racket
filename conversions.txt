@@ -1,0 +1,2 @@
+ sed -e 's@Emitters@Emiters@g'
+ sed -e 's@'\''@"@g'

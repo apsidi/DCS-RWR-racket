@@ -155,7 +155,9 @@
 	 (define/public (set-primary tf)
 			(set! primary tf)
 			)
-	 (define/public (get-distance-from-center) (* 1 (/ threaticonwidth 4)))
+	 (define/public (get-distance-from-center) 
+			(- 300 priority)
+			)
 	 (define/public (parse)
 			(if (equal? jsexpr null) 
 			  (set! jsexpr (string->jsexpr jsonstr) )
@@ -262,8 +264,8 @@
   (define (threat-draw threatobj)
     (send threatobj parse)
     (define r (send threatobj get-distance-from-center));100
-    (define a (+ 0 (send threatobj get-azimuth))) ;in radians;in radians
-    ;need to fix the coordinate system differences between azimuth in-game and the way racket draws
+    (define a (+ pi (/ pi 2) (send threatobj get-azimuth))) ;in radians
+    ;The additions modify the azimuth so it plays nice when we draw it. See the README under DCS World for more info.
     (define-values ( x y ) (convert-to-xy r a))
     (send threatobj draw dc (+ x 200) (+ y 200))
     )
