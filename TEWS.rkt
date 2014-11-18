@@ -191,7 +191,7 @@
 
 			this)
 	 (define/public (summarize)
-			(printf "~a  ~a  ~a\t~a ~a\n" signaltype priority typeints id radartype)
+			(printf "~a  ~a  ~a\t~a ~a ~a\n" signaltype priority typeints id azimuth radartype)
 
 			)
 	 )
@@ -261,8 +261,9 @@
 
   (define (threat-draw threatobj)
     (send threatobj parse)
-    (define r (send threatobj get-distance-from-center))
-    (define a (- (/ pi 2) (send threatobj get-azimuth)))
+    (define r (send threatobj get-distance-from-center));100
+    (define a (+ 0 (send threatobj get-azimuth))) ;in radians;in radians
+    ;need to fix the coordinate system differences between azimuth in-game and the way racket draws
     (define-values ( x y ) (convert-to-xy r a))
     (send threatobj draw dc (+ x 200) (+ y 200))
     )

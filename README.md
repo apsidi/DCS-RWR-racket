@@ -70,6 +70,24 @@ Example line, pretty printed and commented with "#" lines:
 		] 
 	}
 
+Azimuth, from the [DCS Wiki](http://en.wiki.eagle.ru/wiki/Simulator_Scripting_Engine/DCS:_World_1.2.1/Part_1):
+
+	Angle = number
+	Angle is given in radians.
+	Azimuth = Angle
+	Azimuth is an angle of rotation around world axis y counter-clockwise. 
+
+However, this is for 'absolute's, those values relative to the world.
+When reading azimuth in relation to a specific airplane (such as our
+TEWS interpretation), the 0 value extends out the nose of the airplane -
+negative values off to the left (counter clockwise), positive values
+clockwise looking down on top of the plane. This is NOT obvious from
+the DCS documentation, but was confirmed by looking at the rendered
+TEWS display in-game and comparing that view with the exported data at
+that time. [See the in-game video](https://www.youtube.com/watch?v=-IDGZ51gnpg&list=UUmEVA0u2gL-og0NJ_SP6hiw) 
+and compare it to the data in tews5.jsonconn to verify this for yourself.
+
+
 
 Test Data
 =========
