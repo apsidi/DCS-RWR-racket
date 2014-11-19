@@ -29,6 +29,12 @@
 	  )
   )
 
+(define rwr-scopefont
+  (make-font #:size 20 
+	     #:family 'modern  
+	     #:smoothing 'smoothed 
+	     #:size-in-pixels? #t )
+  )
 (define rwr-threatfont
   (make-font #:size 120 
 	     #:family 'modern  
@@ -51,8 +57,13 @@
 	 (define canvas null)
 	 (define listener '())
 	 (define connections '())
+	 (define mode 0)
 	 (define/public (get-canvas) canvas)
 	 (define/public (get-frame) frame)
+	 (define/public (set-mode x)
+			(set! mode x)
+			)
+	 (define/public (get-mode) mode)
 	 (define/public (create) 
 			(set! canvas (new canvas% [parent frame]
 					  [paint-callback
@@ -113,14 +124,25 @@
 			)
 	 )
   )
+(define threatstrings #hash(
+			    ("F-15C" . "15")
+			    ("mig-29s" . "29");these cannot be told apart by the american TEWs equipment supposedly
+			    ("mig-29c" . "29")
+			    ("su-27" . "29")
+			    ("su-33" . "29")
+			    ("a-50" . "50")
+			    ("TAKR Kuznetsov" . "SW")
+			    ("CONN" . "CONN")
+			    ))
 (define (get-threatstring type)
-  type
+  (define str (if (hash-has-key? threatstrings type)
+		(hash-ref threatstrings type)
+		"U"
+		))
+  str
   )
 (define (airborne-type type typeints)
   (if (= (car typeints) 1) #t #f)
-  )
-(define (high-priority threat% typeints) 
-  1
   )
 (define threat%
   (class object%
@@ -133,10 +155,11 @@
 	 (define radartype "")
 	 (define airborne #f)
 	 (define highpriority #f)
+	 (define awacs #f)
 	 (define primary #f)
 	 (define tracking #f)
 	 (define newthreat #f)
-	 (define typeints '())
+	 (define typeints '(0,0,0,0))
 	 (super-new)
 	 (define/public (get-highpriority) highpriority)
 	 (define/public (get-priority) priority)
@@ -156,12 +179,23 @@
 			(set! primary tf)
 			)
 	 (define/public (get-distance-from-center) 
-			(- 300 priority)
+			(cond
+			  ;[highpriority 75]
+			  ;[primary 100]
+			  ;[awacs 175]
+			  [else (/ (+ 
+				     (- 300 priority)
+				     (* power 200)
+				     ) 2.10)
+				     ]
+			  )
 			)
 	 (define/public (parse)
-			(if (equal? jsexpr null) 
+			; needs error checking
+			(if (and (equal? jsexpr (json-null)) (not (equal? jsonstr "")))
 			  (set! jsexpr (string->jsexpr jsonstr) )
 			  null)
+			;(if (equal? jsexpr (json-null)  ;i want to return early, is that not a thing?
 			(set! azimuth (hash-ref jsexpr 'Azimuth) )
 			(set! id (hash-ref jsexpr 'ID) )
 			(set! power (hash-ref jsexpr 'Power) )
@@ -172,7 +206,18 @@
 			  (set! typeints (hash-ref jsexpr 'TypeInts))
 			  null)
 			(set! airborne (airborne-type radartype typeints) )
-			(set! highpriority (high-priority this typeints))
+			;(set! highpriority (high-priority this typeints))
+			(set! awacs (if (and
+					  (= (car typeints) 1)
+					  (= (cadr typeints) 1)
+					  (= (caddr typeints) 5)
+					 ) #t #f))
+			(set! tracking (if 
+					 (equal? signaltype "lock") 
+					 #t 
+					 #f
+					 )
+			  )
 
 			this)
 	 (define/public (draw dc centerx centery) 
@@ -193,7 +238,7 @@
 
 			this)
 	 (define/public (summarize)
-			(printf "~a  ~a  ~a\t~a ~a ~a\n" signaltype priority typeints id azimuth radartype)
+			(printf "~a ~a  ~a ~a  ~a\t~a ~a ~a\n" (if primary "*" " " ) signaltype power priority typeints id azimuth radartype)
 
 			)
 	 )
@@ -219,8 +264,7 @@
     (* x (/ x (* x reverse-factor) ) ;scale-up
        ) (/ threaticonwidth 2)) ;center
   )
-
-
+(define last-stl '()) ;last short threat list
 (define (draw-threats dc)
   ;draw network threats with calls to draw-threat
   ; remember, per spec we only draw up to 16 threats at a time.
@@ -229,17 +273,20 @@
   (define js (string->jsexpr jsonline))
 
   (set! js (send rwr read))
+  ;(if (equal? js (json-null)) ;exit early somehow
   ; parse the objects from json
+  ;(printf "\n\n~a\n\n" (jsexpr->string js))
 
   (define threat-list '())
 
   ;pull the first-level data out of js
   (define mode (hash-ref js 'Mode)) ;the RWR mode
+  ;(if (equal? mode (json-null)) ;exit early somehow
+  (send rwr set-mode mode)
   (define ModelTime (hash-ref js 'MTime)) ; the time within the simulator
   (define Emitters (hash-ref js 'Emitters)); the array of emitters
 
   (printf "Time: ~a\n" ModelTime)
-
   (map 
     (lambda (jsemit) 
       (set! threat-list (append threat-list (list
@@ -250,9 +297,10 @@
 		 )))
       ) 
        Emitters)
+  (map (lambda (x) (send x parse) ) threat-list)
   ; sort the  list, take highest 16 (per the spec)
   (define sorted-threat-list
-    (sort threat-list (lambda (x y) (if (< (send x get-priority) (send y get-priority) ) #t #f)) )
+    (sort threat-list (lambda (x y) (if (> (send x get-priority) (send y get-priority) ) #t #f)) )
     )
   (define short-threat-list 
     (if (> (length sorted-threat-list) 16)
@@ -260,9 +308,14 @@
       sorted-threat-list
       ))
   ; map across that sublist of 16 the function that draws and handles them
+  (if (> (length short-threat-list) 0)
+	  (send (car short-threat-list) set-primary #t)
+	  null
+    )
+
+  (set! last-stl short-threat-list); needed to be able to mark newest threat
 
   (define (threat-draw threatobj)
-    (send threatobj parse)
     (define r (send threatobj get-distance-from-center));100
     (define a (+ pi (/ pi 2) (send threatobj get-azimuth))) ;in radians
     ;The additions modify the azimuth so it plays nice when we draw it. See the README under DCS World for more info.
@@ -279,6 +332,17 @@
   ; plus a cross at the center of the scope
   (send dc draw-path (rwr-cross 15 200 200) )
   (send dc draw-path (rwr-periphery 5 200 200) )
+  (let (
+	[mode (send rwr get-mode)]
+	[middlex 50]
+	[middley 50]
+	)
+    (define modestr (if (= 1 mode) "Lock Only" "All"))
+    (define oldfont (send dc get-font))
+    (send dc set-font rwr-scopefont)
+    (send dc draw-text modestr 0 0)
+    (send dc set-font oldfont)
+    )
   )
 
 (define (rwr-cross radius centerx centery)
@@ -342,7 +406,7 @@
 (define f (send rwr create)) ;create the window and display
 (send rwr accept);blocks!
 (define (main i)
-  (sleep 0.012)
+  ;(sleep 0.002)
   (set! i (+ i 1) )
   (send f update) ;force an update of the display
   (main i); 'loop'
