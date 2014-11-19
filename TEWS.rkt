@@ -28,6 +28,15 @@
 	  (* distance (sin azimuth ) )
 	  )
   )
+(define (get-threat-by-id lst id)
+  (let (
+	[matches (filter 
+		   (lambda (x) (if (equal? (send x get-id) id) #t #f))
+		   lst)]
+	)
+    (if (> (length matches) 0) (car matches) #f)
+    )
+  )
 
 (define rwr-scopefont
   (make-font #:size 20 
@@ -244,7 +253,7 @@
 	 )
   )
 
-
+(define newest '())
 (define (draw-threatstring dc threat-string middlex middley)
   ;draw the string representing the received radar type, centered over the middlex,middley coordinates.
 
@@ -298,25 +307,46 @@
       ) 
        Emitters)
   (map (lambda (x) (send x parse) ) threat-list)
-  ; sort the  list, take highest 16 (per the spec)
-  (define sorted-threat-list
+
+  (define sorted-threat-list ;sort the list by priority, highest first
     (sort threat-list (lambda (x y) (if (> (send x get-priority) (send y get-priority) ) #t #f)) )
     )
-  (define short-threat-list 
+
+  (define short-threat-list ;F-15 RWR supposedly has a max of 16 displayed at one time
     (if (> (length sorted-threat-list) 16)
       (take sorted-threat-list 16)
       sorted-threat-list
       ))
-  ; map across that sublist of 16 the function that draws and handles them
-  (if (> (length short-threat-list) 0)
+
+  (if (> (length short-threat-list) 0) ;make the highest priority emitter the primary (the diamond symbology)
 	  (send (car short-threat-list) set-primary #t)
 	  null
     )
 
+
+  (if (null? last-stl) #f
+    (let* (
+	   [old-ids (map (lambda (x) (send x get-id)) last-stl)]
+	   [new-threats (filter (lambda (x) (not (member (send x get-id) old-ids))) short-threat-list)]
+	   )
+      (if (not (null? new-threats))
+	(set! newest (send (car new-threats) get-id))
+	#f
+	)
+      )
+    )
+  (if (not (null? newest))
+    (let ([x (get-threat-by-id short-threat-list newest) ])
+      (if (not (equal? #f x)) (send x set-newthreat #t) #f)
+      )
+    #f
+    )
+    ;if old newest doesn't exist anymore, there is now 'new threat' symbology
+
   (set! last-stl short-threat-list); needed to be able to mark newest threat
 
   (define (threat-draw threatobj)
-    (define r (send threatobj get-distance-from-center));100
+    (define r (send threatobj get-distance-from-center))
     (define a (+ pi (/ pi 2) (send threatobj get-azimuth))) ;in radians
     ;The additions modify the azimuth so it plays nice when we draw it. See the README under DCS World for more info.
     (define-values ( x y ) (convert-to-xy r a))
