@@ -50,3 +50,10 @@ I will probably do this with a web-app - I have a small portion of this
 done already, actually.
 
 
+
+Resources:
+http://wiki.hoggit.us/view/RWR
+http://www.3rd-wing.net/index.php?showtopic=3716
+https://superuser.com/questions/239893/how-to-rate-limit-a-pipe-under-linux
+https://stackoverflow.com/questions/23744773/how-do-i-parse-json-in-racket
+
