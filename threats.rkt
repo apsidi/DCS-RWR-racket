@@ -17,6 +17,7 @@
 			    ("su-33" . "29")
 			    ("a-50" . "50")
 			    ("TAKR Kuznetsov" . "SW")
+			    ("s-300ps 64h6e sr". "BB")
 			    ("CONN" . "CONN")
 			    ))
 (define (get-threatstring type)

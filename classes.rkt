@@ -217,7 +217,9 @@
 			(cond
 			  ;[highpriority 75]
 			  ;[primary 100]
-			  ;[awacs 175]
+			  [awacs 175]
+			  ;[ew 175]
+			  ;[#t (- 300 (* 100 power))]
 			  [else (/ (+ 
 				     (- 300 priority)
 				     (* power 200)
@@ -277,7 +279,7 @@
 
 			this)
 	 (define/public (summarize);print a summary of this object
-			(printf "~a ~a  ~a ~a  ~a\t~a ~a ~a\n" (if primary "*" " " ) signaltype power priority typeints id azimuth radartype)
+			(printf "~a ~a  ~a ~a  ~a\t~a ~a ~a\n" (if newthreat "*" " " ) signaltype power priority typeints id azimuth radartype)
 
 			)
 	 )
