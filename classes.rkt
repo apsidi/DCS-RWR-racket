@@ -6,6 +6,7 @@
 	 (define canvas null)
 	 (define listener '())
 	 (define connections '())
+	 (define i 0)
 	 (define mode 0) ;mode is 0 meaning "show all emitters" by default. Can also be 1 for "show only locked emitters"
 	 ;in this case, it is received for each json message and used here to show the status. Changing this will not change what is actually shown, it reflects the in-game value.
 	 (define/public (get-canvas) canvas)
@@ -14,6 +15,10 @@
 			(set! mode x)
 			)
 	 (define/public (get-mode) mode)
+	 (define/public (set-i x)
+			(set! i x)
+			)
+	 (define/public (get-i) i)
 	 (define/public (create) 
 			(set! canvas (new canvas% [parent frame]
 					  [paint-callback
@@ -65,9 +70,11 @@
 				)
 			)
 	 (define/public (read) ; return either #f if we don't have a connection yet, or a json message
+			(define jsonline "{ \"Mode\":0.000000, \"MTime\": 10.600000, \"Emitters\":[ { \"ID\":\"16781568\", \"Power\":0.400990, \"Azimuth\":-2.259402, \"Priority\":160.400986, \"SignalType\":\"scan\", \"Type\":\"F-15C\", \"TypeInts\":[1.000000,1.000000,1.000000,6.000000] },{ \"ID\":\"16778496\", \"Power\":0.719001, \"Azimuth\":-1.720845, \"Priority\":110.719002, \"SignalType\":\"scan\", \"Type\":\"a-50\", \"TypeInts\":[1.000000,1.000000,5.000000,26.000000] },{ \"ID\":\"16777472\", \"Power\":0.183416, \"Azimuth\":1.909581, \"Priority\":130.183411, \"SignalType\":\"scan\", \"Type\":\"TAKR Kuznetsov\", \"TypeInts\":[3.000000,12.000000,12.000000,1.000000] },{ \"ID\":\"16778240\", \"Power\":0.251832, \"Azimuth\":-0.261481, \"Priority\":160.251831, \"SignalType\":\"scan\", \"Type\":\"mig-29c\", \"TypeInts\":[1.000000,1.000000,1.000000,50.000000] }] }")
 			(if (null? connections)
 				  #f
 				  (read-json (car connections))
+				  ;(string->jsexpr jsonline)
 				); parse a line of json and handle it
 			)
 	 )
@@ -250,11 +257,12 @@
 					  (= (caddr typeints) 5)
 					 ) #t #f))
 			(set! tracking (if 
-					 (equal? signaltype "lock") 
+					 ( and (equal? signaltype "lock") (equal? (modulo (send rwr get-i) 5) 0))
 					 #t 
 					 #f
 					 )
 			  )
+			(printf "i: ~a\n" (get-i))
 
 			this)
 	 (define/public (draw dc centerx centery) 

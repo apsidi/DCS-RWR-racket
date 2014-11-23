@@ -56,6 +56,7 @@
 (define (main i)
   ;(sleep 0.017)
   (set! i (+ i 1) )
+  (send rwr set-i i)
   (with-handlers ([exn:fail? (lambda (v) (printf "oops ~a\n" v))])
 	  (send f update) ;force an update of the display
 	  )
