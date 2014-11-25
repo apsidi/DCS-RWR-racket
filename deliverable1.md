@@ -49,8 +49,8 @@ Code Index
 Other File Index
 -----------------
 
-tews2.jsonconn and tews5.jsonconn represent captured data from the simulator, meant to be replayed to our program for testing purposes (netcat works well for this).
-tews2.jsonconn has a format racket's JSON library cannot handle, but I've since corrected the simulator output and recaptured the same source that generated tews2 as tews5.
-ref/ has reference files, to aid in accuracy when coding the display.
+* tews2.jsonconn and tews5.jsonconn represent captured data from the simulator, meant to be replayed to our program for testing purposes (netcat works well for this).
+* tews2.jsonconn has a format racket's JSON library cannot handle, but I've since corrected the simulator output and recaptured the same source that generated tews2 as tews5.
+* ref/ has reference files, to aid in accuracy when coding the display.  
 	If you read anything in here, start with README.md in the git, and then symbology.txt in ref/
-images/ has various images as necessary for creating presentations.
+* images/ has various images as necessary for creating presentations.
