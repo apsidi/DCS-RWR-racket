@@ -257,12 +257,11 @@
 					  (= (caddr typeints) 5)
 					 ) #t #f))
 			(set! tracking (if 
-					 ( and (equal? signaltype "lock") (equal? (modulo (send rwr get-i) 5) 0))
+					 ( and (equal? signaltype "lock") (equal? (modulo i 5) 0))
 					 #t 
 					 #f
 					 )
 			  )
-			(printf "i: ~a\n" (get-i))
 
 			this)
 	 (define/public (draw dc centerx centery) 
