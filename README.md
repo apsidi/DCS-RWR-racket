@@ -17,11 +17,13 @@ export the data.
 
 Overview
 ========
-Coming soon.
 The racket magic is in TEWS.rkt
 It can be run with
 
 	$ racket -r TEWS.rkt
+
+The rwr% class, when instantiated, is an object that represents an RWR display.
+A threat% object represents a radar emitter detected by the TEWS system.
 
 
 DCS World
