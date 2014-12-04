@@ -49,6 +49,7 @@
 
 
 (define i 0 )
+;(define b 0 )
 (define rwr (new rwr% [frame frame]) ) ;instantiate
 (define (shutdown) (send rwr shutdown))
 (define f (send rwr create)) ;create the window and display
