@@ -235,7 +235,7 @@
 			  )
 			)
 	 (define/public (parse)
-			; (if(eof-object? (json-null)#eof )
+			; Error Handling
 			(if (and (equal? jsexpr (json-null)) (not (equal? jsonstr "")))
 			  (set! jsexpr (string->jsexpr jsonstr) )
 			  null)
