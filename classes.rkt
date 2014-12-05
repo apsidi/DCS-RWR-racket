@@ -83,6 +83,8 @@
 
 (define last-stl '()) ;last short-threat-list
 (define (draw-threats dc)
+  (define frame-counter (send rwr get-i))
+  ;(printf "draw-threats i is : ~a\n" frame-counter)
   ; remember, per spec we only draw up to 16 threats at a time.
   ; must sort threats by priority, highest first, then draw the first 16
   (define jsonline "{ \"Mode\":0.000000, \"MTime\": 10.600000, \"Emitters\":[ { \"ID\":\"16781568\", \"Power\":0.400990, \"Azimuth\":-2.259402, \"Priority\":160.400986, \"SignalType\":\"scan\", \"Type\":\"F-15C\", \"TypeInts\":[1.000000,1.000000,1.000000,6.000000] },{ \"ID\":\"16778496\", \"Power\":0.719001, \"Azimuth\":-1.720845, \"Priority\":110.719002, \"SignalType\":\"scan\", \"Type\":\"a-50\", \"TypeInts\":[1.000000,1.000000,5.000000,26.000000] },{ \"ID\":\"16777472\", \"Power\":0.183416, \"Azimuth\":1.909581, \"Priority\":130.183411, \"SignalType\":\"scan\", \"Type\":\"TAKR Kuznetsov\", \"TypeInts\":[3.000000,12.000000,12.000000,1.000000] },{ \"ID\":\"16778240\", \"Power\":0.251832, \"Azimuth\":-0.261481, \"Priority\":160.251831, \"SignalType\":\"scan\", \"Type\":\"mig-29c\", \"TypeInts\":[1.000000,1.000000,1.000000,50.000000] }] }")
@@ -117,6 +119,9 @@
 		 )))
       ) 
        Emitters)
+  (map (lambda (x)
+	 (send x set-i frame-counter)
+	 ) threat-list)
   (map (lambda (x) (send x parse) ) threat-list)
 
   (define sorted-threat-list ;sort the list by priority, highest first
@@ -201,6 +206,7 @@
 	 (define primary #f)
 	 (define tracking #f)
 	 (define newthreat #f)
+	 (define i 0)
 	 (define typeints '(0,0,0,0))
 	 (super-new)
 	 (define/public (get-highpriority) highpriority)
@@ -211,6 +217,9 @@
 	 (define/public (get-newthreat) newthreat)
 	 (define/public (get-primary) primary)
 	 (define/public (get-azimuth) azimuth)
+	 (define/public (set-i tf)
+			(set! i tf)
+			)
 	 (define/public (set-highpriority tf)
 			(set! highpriority tf)
 			)
@@ -257,7 +266,7 @@
 					  (= (caddr typeints) 5)
 					 ) #t #f))
 			(set! tracking (if 
-					 ( and (equal? signaltype "lock") (equal? (modulo i 5) 0))
+					 ( and (equal? signaltype "lock") (equal? (modulo i 2) 0))
 					 #t 
 					 #f
 					 )
@@ -286,7 +295,7 @@
 
 			this)
 	 (define/public (summarize);print a summary of this object
-			(printf "~a ~a  ~a ~a  ~a\t~a ~a ~a\n" (if newthreat "*" " " ) signaltype power priority typeints id azimuth radartype)
+			(printf "~a ~a  ~a ~a  ~a\t~a ~a ~a i:~a\n" (if newthreat "*" " " ) signaltype power priority typeints id azimuth radartype i)
 
 			)
 	 )
