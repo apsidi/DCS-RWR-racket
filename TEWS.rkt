@@ -59,7 +59,7 @@
 	  (send rwr accept);blocks!
 	  #f)
   (set! i (+ i 1) )
-  ;(set! b (+ b 1) )
+  ;
   (send rwr set-i i)
   (with-handlers ([exn:fail? (lambda (v) (printf "oops ~a\n" v))])
 	  (send f update) ;force an update of the display
