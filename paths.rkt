@@ -38,7 +38,7 @@
 (define rwr-tracking
   ; the path representing a tracking radar threat or a locked radar threat
   ; a centered circle around the entire threat icon
-  ; properly, this should also blink!
+  ; properly.
   (let ([p (new dc-path%)])
     (send p ellipse 0 0 400 400)
     p)
