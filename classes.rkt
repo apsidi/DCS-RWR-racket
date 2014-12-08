@@ -102,7 +102,7 @@
 
   (set! js (send rwr read))
   ; parse the objects from json
-  (if (equal? js (json-null)) (set! error #t) #f)
+  (when (equal? js (json-null)) (set! error #t) )
   ; for if we ever find a nice way to handle errors, i suppose ~MM
 
 
@@ -163,7 +163,7 @@
     )
   (if (not (null? newest)) ;if there is a newest, make sure that threatobj knows it should draw itself as the newest!
     (let ([x (get-threat-by-id short-threat-list newest) ])
-      (if (not (equal? #f x)) (send x set-newthreat #t) #f)
+      (unless (equal? #f x) (send x set-newthreat #t) )
       )
     #f
     )
