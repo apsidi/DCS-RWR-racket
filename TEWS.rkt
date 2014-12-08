@@ -11,10 +11,10 @@
 (include "threats.rkt") ; threat definitions and helper functions
 (include "paths.rkt") ;drawing path definitions
 
-;this file: minor things, plus "main" function
+;this file: minor things, plus "main" loop
 
 
-(define frame (new frame%
+(define frame (new frame%	;make the window for our display
 		   [label "RWR"]
 		   [width 400]
 		   [height 400]
@@ -25,26 +25,19 @@
     (string-join 
           (map (lambda (x) (format "~s=~s" (car x) (cdr x))) l) " "))
 
-(define (convert-to-xy distance azimuth)
+(define (convert-to-xy distance azimuth) ;take the polar coordinates from the sim and 
+  ; convert to an x,y (to be later used for drawing after shifting the origin)
   (values (* distance (cos azimuth ) )
 	  (* distance (sin azimuth ) )
 	  )
   )
 
-(define (scale-up-and-center x reverse-factor)
+(define (scale-up-and-center x reverse-factor) ;used to convert between scaled-down 'pixels' 
+  ;when drawing threat-icon paths to the regular size pixels of the threatscope for positioning
   (- 
     (* x (/ x (* x reverse-factor) ) ;scale-up
        ) (/ threaticonwidth 2)) ;center
   )
-
-(define (block-till-json conn)
-  (let ([x (read-json conn)])
-    (printf "~a \n" x)
-    (if (eof-object? x) (block-till-json conn) x)
-    )
-  )
-
-
 
 
 
