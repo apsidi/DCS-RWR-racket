@@ -48,18 +48,19 @@
 
 
 
-(define i 0 )
-(define rwr (new rwr% [frame frame]) ) ;instantiate
-(define (shutdown) (send rwr shutdown))
+(define i 0 ) ; frame counter
+(define rwr (new rwr% [frame frame]) ) ;instantiate the rwr
+(define (shutdown) (send rwr shutdown)) ;faster for mike to type while debugging
 (define f (send rwr create)) ;create the window and display
 (define (main i)
-  ;(sleep 0.017)
-  (if (send rwr tcp-ready?)
+  ;(sleep 0.017) ; not necessary because we're dependent on receiving data from the network.
+  ; could be uncommented to enforce a frame rate
+  (if (send rwr tcp-ready?) ;every loop, check for new connections (in case old one died, or sim makes two connection attempts)
 	  (send rwr accept);blocks!
 	  #f)
-  (set! i (+ i 1) )
+  (set! i (+ i 1) ) ; increment frame counter
   (send rwr set-i i);TODO: rename to frame-counter because that would be way nicer.
-  (with-handlers ([exn:fail? (lambda (v) (printf "oops ~a\n" v))])
+  (with-handlers ([exn:fail? (lambda (v) (printf "oops ~a\n" v))]) ;catch errors, and print without quitting
 	  (send f update) ;force an update of the display
 	  )
   (main i); 'loop'
