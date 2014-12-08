@@ -43,6 +43,12 @@
 
 					      )
 					    ]
+			        (new button%[parent frame]
+			                      [label "Shutdown"]
+			                      [callback (lambda (button event)
+			                                    (send rwr shutdown)
+			                                    (exit:exit)))])
+			                                 
 					  )
 			  )
 			(set! listener (tcp-listen listenport 2 #t))
