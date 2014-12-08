@@ -15,9 +15,23 @@
 			    ("mig-29c" . "29");
 			    ("su-27" . "29")  ;
 			    ("su-33" . "29")  ;
+			    ("mig-29"."29")
 			    ("a-50" . "50");an awacs
 			    ("TAKR Kuznetsov" . "SW");ship
 			    ("s-300ps 64h6e sr". "BB"); sam
+			    ("55g6 ewr station"."EW")
+			    ("buk 9a310m1 ln"."S")
+			    ("e-3a"."E3")
+			    ("f-18c"."18")
+			    ("f-4e phantom ii"."F4")
+			    ("f-5e tiger"."F5")
+			    ("F-86F"."U") ;not known to the F-15
+			    ("MiG-21Bis"."21")
+			    ("mig-23ml"."23")
+			    ("mig-25p"."25")
+			    ("mirage 2000c"."2K")
+			    ("R-77 (AA-12)"."M")
+
 			    ("CONN" . "CONN");test json to indicate the sim is running but no data is available (like: in the wrong aircraft, no TEWS, damaged equipment...)
 			    ))
 (define (get-threatstring type)
