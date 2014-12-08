@@ -6,7 +6,7 @@
 	 (define canvas null)
 	 (define listener '())
 	 (define connections '())
-	 (define i 0)
+	 (define i 0);frame counter
 	 (define mode 0) ;mode is 0 meaning "show all emitters" by default. Can also be 1 for "show only locked emitters"
 	 ;in this case, it is received for each json message and used here to show the status. Changing this will not change what is actually shown, it reflects the in-game value.
 	 (define/public (get-canvas) canvas)
@@ -90,32 +90,31 @@
 (define last-stl '()) ;last short-threat-list
 (define (draw-threats dc)
   (define frame-counter (send rwr get-i))
-  (printf "draw-threats i is : ~a\n" frame-counter)
-  ; remember, per spec we only draw up to 16 threats at a time.
-  ; must sort threats by priority, highest first, then draw the first 16
-  (define jsonline "{ \"Mode\":0.000000, \"MTime\": 10.600000, \"Emitters\":[ { \"ID\":\"16781568\", \"Power\":0.400990, \"Azimuth\":-2.259402, \"Priority\":160.400986, \"SignalType\":\"scan\", \"Type\":\"F-15C\", \"TypeInts\":[1.000000,1.000000,1.000000,6.000000] },{ \"ID\":\"16778496\", \"Power\":0.719001, \"Azimuth\":-1.720845, \"Priority\":110.719002, \"SignalType\":\"scan\", \"Type\":\"a-50\", \"TypeInts\":[1.000000,1.000000,5.000000,26.000000] },{ \"ID\":\"16777472\", \"Power\":0.183416, \"Azimuth\":1.909581, \"Priority\":130.183411, \"SignalType\":\"scan\", \"Type\":\"TAKR Kuznetsov\", \"TypeInts\":[3.000000,12.000000,12.000000,1.000000] },{ \"ID\":\"16778240\", \"Power\":0.251832, \"Azimuth\":-0.261481, \"Priority\":160.251831, \"SignalType\":\"scan\", \"Type\":\"mig-29c\", \"TypeInts\":[1.000000,1.000000,1.000000,50.000000] }] }")
-  (define js (string->jsexpr jsonline))
-  ; above two lines are handy for testing
-
-
-  (define error #f)
-
-  (set! js (send rwr read))
-  (if (equal? js (json-null)) (set! error #t) #f)
-  ; parse the objects from json
-  ;(printf "\n\n~a\n\n" (jsexpr->string js))
-
+  (define error #f) ;
   (define threat-list '())
 
-  ;pull the first-level data out of js
+
+  (define jsonline "{ \"Mode\":0.000000, \"MTime\": 10.600000, \"Emitters\":[ { \"ID\":\"16781568\", \"Power\":0.400990, \"Azimuth\":-2.259402, \"Priority\":160.400986, \"SignalType\":\"scan\", \"Type\":\"F-15C\", \"TypeInts\":[1.000000,1.000000,1.000000,6.000000] },{ \"ID\":\"16778496\", \"Power\":0.719001, \"Azimuth\":-1.720845, \"Priority\":110.719002, \"SignalType\":\"scan\", \"Type\":\"a-50\", \"TypeInts\":[1.000000,1.000000,5.000000,26.000000] },{ \"ID\":\"16777472\", \"Power\":0.183416, \"Azimuth\":1.909581, \"Priority\":130.183411, \"SignalType\":\"scan\", \"Type\":\"TAKR Kuznetsov\", \"TypeInts\":[3.000000,12.000000,12.000000,1.000000] },{ \"ID\":\"16778240\", \"Power\":0.251832, \"Azimuth\":-0.261481, \"Priority\":160.251831, \"SignalType\":\"scan\", \"Type\":\"mig-29c\", \"TypeInts\":[1.000000,1.000000,1.000000,50.000000] }] }")
+  (define js (string->jsexpr jsonline))
+  ; above two lines are handy for testing, if you're not able to use the network based (netcat, pipeviewer, etc) testing data.
+
+
+
+  (set! js (send rwr read))
+  ; parse the objects from json
+  (if (equal? js (json-null)) (set! error #t) #f)
+  ; for if we ever find a nice way to handle errors, i suppose ~MM
+
+
   (define mode (hash-ref js 'Mode)) ;the RWR mode
-  ;(if (equal? mode (json-null)) ;exit early somehow
-  (send rwr set-mode mode)
+  (send rwr set-mode mode) ; update RWR object with current mode
   (define ModelTime (hash-ref js 'MTime)) ; the time within the simulator
   (define Emitters (hash-ref js 'Emitters)); the array of emitters
 
   (printf "Time: ~a\n" ModelTime)
-  (map 
+
+
+  (map  ;make threat-list contain threat% objects based on received json data
     (lambda (jsemit) 
       (set! threat-list (append threat-list (list
 		 (new threat% 
@@ -125,57 +124,63 @@
 		 )))
       ) 
        Emitters)
-  (map (lambda (x)
+
+  (map (lambda (x) ;update each threat with the current frame id so it can blink if it needs to
 	 (send x set-i frame-counter)
 	 ) threat-list)
-  (map (lambda (x) (send x parse) ) threat-list)
 
-  (define sorted-threat-list ;sort the list by priority, highest first
+  (map (lambda (x) (send x parse) ) threat-list) ;tell each threat to parse its jsexpr data
+
+  (define sorted-threat-list ;sort the list by priority, highest first - this means the 'primary' threat is accessible with (car sorted-threat-list)
     (sort threat-list (lambda (x y) (if (> (send x get-priority) (send y get-priority) ) #t #f)) )
     )
 
-  (define short-threat-list ;F-15 RWR supposedly has a max of 16 displayed at one time
+  (define short-threat-list ;F-15 RWR supposedly has a max of 16 displayed at one time - the game doesn't seem to adhere to that, but we will.
     (if (> (length sorted-threat-list) 16)
       (take sorted-threat-list 16)
       sorted-threat-list
       ))
 
   (if (> (length short-threat-list) 0) ;make the highest priority emitter the primary (the diamond symbology)
-	  (send (car short-threat-list) set-primary #t)
+	  (send (car short-threat-list) set-primary #t) 
 	  null
     )
 
 
-  (if (null? last-stl) #f
+  (if (null? last-stl) #f ;if we had data before, last-stl contains the list of old threats. 
+    ;We can easily replicate the simulator's RWR function of determining the latest received threat emission, and marking it appropriately
     (let* (
-	   [old-ids (map (lambda (x) (send x get-id)) last-stl)]
-	   [new-threats (filter (lambda (x) (not (member (send x get-id) old-ids))) short-threat-list)]
+	   [old-ids (map (lambda (x) (send x get-id)) last-stl)] ;list of ids from the list of old threats so we can do..
+	   [new-threats (filter (lambda (x) (not (member (send x get-id) old-ids))) short-threat-list)] ;this line, which gives us a list of threats that aren't in last-stl
 	   )
       (if (not (null? new-threats))
-	(set! newest (send (car new-threats) get-id))
+	(set! newest (send (car new-threats) get-id)) ; if we have new threats 
+	;(probably never more than one at a time because of how the simulator models the TEWS system (discovers roughly one at a time), 
+	; the highest priority one will be marked as the 'newest')
 	#f
 	)
       )
     )
-  (if (not (null? newest))
+  (if (not (null? newest)) ;if there is a newest, make sure that threatobj knows it should draw itself as the newest!
     (let ([x (get-threat-by-id short-threat-list newest) ])
       (if (not (equal? #f x)) (send x set-newthreat #t) #f)
       )
     #f
     )
-    ;if old newest doesn't exist anymore, there is now 'new threat' symbology
+    ;if most recent newest threat  is no longer detected, there is no 'new threat' symbology
 
   (set! last-stl short-threat-list); needed to be able to mark newest threat
 
   (define (threat-draw threatobj)
-    (define r (send threatobj get-distance-from-center))
-    (define a (+ pi (/ pi 2) (send threatobj get-azimuth))) ;in radians
+    (define r (send threatobj get-distance-from-center)) ;get distance from center of scope in pixels
+    (define a (+ pi (/ pi 2) (send threatobj get-azimuth))) ;get-azimuth is in radians
     ;The additions modify the azimuth so it plays nice when we draw it. See the README under DCS World for more info.
-    (define-values ( x y ) (convert-to-xy r a))
-    (send threatobj draw dc (+ x 200) (+ y 200))
+    (define-values ( x y ) (convert-to-xy r a)) ; convert from polar to rectangular
+    (send threatobj draw dc (+ x 200) (+ y 200)) ;the +200 to x and y account for the origin being at 0,0, where we want to draw around the center of our scope, at 200,200 (racket)
+    ; or (200,-200) (cartesian)
     )
-  (map threat-draw short-threat-list)
-  (map (lambda (x) (send x summarize)) short-threat-list)
+  (map threat-draw short-threat-list) ;draw each threat on the scope
+  (map (lambda (x) (send x summarize)) short-threat-list) ;write a summary of detected threats to the console screen
 
   )
 (define (draw-threatscope dc)
@@ -292,7 +297,7 @@
 			(if primary (send dc draw-path rwr-primarythreat x y) null) ;primary is the diamond around the highest priority threat
 			(if tracking (send dc draw-path rwr-tracking x y) null) ; tracking is the circle around any threat that has a 'lock'
 			(if newthreat (send dc draw-path rwr-newestthreat x y) null) ;is the top semi-circle around the most recently detected threat
-			(if highpriority
+			(if (or highpriority tracking)
 			  (send dc set-font rwr-threatfontbold);then
 			  (send dc set-font rwr-threatfont);else
 			  )

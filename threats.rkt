@@ -12,13 +12,13 @@
 (define threatstrings #hash(  ;return the string to be drawn on the scope, given a unit type.
 			    ("F-15C" . "15")
 			    ("mig-29s" . "29");these cannot be told apart by the american TEWs equipment supposedly
-			    ("mig-29c" . "29")
-			    ("su-27" . "29")
-			    ("su-33" . "29")
-			    ("a-50" . "50")
-			    ("TAKR Kuznetsov" . "SW")
-			    ("s-300ps 64h6e sr". "BB")
-			    ("CONN" . "CONN")
+			    ("mig-29c" . "29");
+			    ("su-27" . "29")  ;
+			    ("su-33" . "29")  ;
+			    ("a-50" . "50");an awacs
+			    ("TAKR Kuznetsov" . "SW");ship
+			    ("s-300ps 64h6e sr". "BB"); sam
+			    ("CONN" . "CONN");test json to indicate the sim is running but no data is available (like: in the wrong aircraft, no TEWS, damaged equipment...)
 			    ))
 (define (get-threatstring type)
   (define str (if (hash-has-key? threatstrings type)
@@ -27,11 +27,13 @@
 		))
   str
   )
+
 (define (airborne-type type typeints)
   (if (= (car typeints) 1) #t #f); in typeints, a 1 is airborne, 2 is ground, 3 is seagoing. Unsure what '4' is.
   )
 
-(define newest '())
+(define newest '()); the newest threat as received by the rwr
+
 (define (draw-threatstring dc threat-string middlex middley)
   ;draw the string representing the received radar type, centered over the middlex,middley coordinates.
 

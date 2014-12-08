@@ -99,5 +99,6 @@ One can use the \*.jsonconn files as testdata in the following fashion:
 	$ cat tews5.jsonconn |pv -l -L 10 | nc localhost 6001
 
 The above line will take the tews5 data, printing at 10 (-L) lines (-l)
-per second, and give that input to netcat, which will listen (-l) on port
-(-p) 6000 for incoming tcp connections.
+per second, and give that input to netcat, which will connect to the local
+computer on port 6001 to connect tou the listening racket (which must already
+be running).
