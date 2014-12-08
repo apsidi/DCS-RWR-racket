@@ -14,7 +14,17 @@
 ;this file: minor things, plus "main" loop
 
 
-(define frame (new frame%	;make the window for our display
+(define frame (new (class frame%	;make the window for our display
+			  ;add our code to handle being closed
+			  ; currently breaks the terminal it's run in, and requires a user break (C-c) type in the racket terminal
+			  ; ...not sure why - or how to fix this with anything we were taught in class.
+			  (super-new)
+			  (define/augment (on-close)
+					  (printf "Closing!...")
+					  (send rwr shutdown)
+					  (exit)
+					  )
+			  )
 		   [label "RWR"]
 		   [width 400]
 		   [height 400]
@@ -53,8 +63,8 @@
 	  #f)
   (set! i (+ i 1) ) ; increment frame counter
   (send rwr set-i i);TODO: rename to frame-counter because that would be way nicer.
-  (with-handlers ([exn:fail? (lambda (v) (printf "oops ~a\n" v))]) ;catch errors, and print without quitting
-	  (send f update) ;force an update of the display
+  (with-handlers ([exn:fail? (lambda (v) (printf "." ))]) ;catch errors, continue anyway (until we get a better way of handling errors)
+	  (send f update) ;force an update of the display (thereby calling draw-threats and such in the paint callback)
 	  )
   (main i); 'loop'
   )

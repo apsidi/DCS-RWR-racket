@@ -43,11 +43,11 @@
 
 					      )
 					    ]
-			               (new button% [parent frame]
-			                            [label "Shutdown"]
-			                            [callback (lambda (button event)
-			                                    (send rwr shutdown)
-			                                    (exit:exit)))])
+				       ;(new button% [parent frame]
+						    ;[label "Shutdown"]
+						    ;[callback (lambda (button event)
+							    ;(send rwr shutdown)
+							    ;(exit:exit)))])
 			                                 
 					  )
 			  )
