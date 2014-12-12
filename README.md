@@ -30,9 +30,9 @@ Files
 * `README.md` and `README.txt` (.txt is a symlink to .md) -- This file.
 * `TEWS.rkt`    -- The file that contains the main loop, and includes the other .rkt files.
 * `classes.rkt` -- The file that contains the `threat%` and `rwr%` classes, and the two main drawing functions, `(draw-threats)`, and `(draw-threatscope)`. 
-* `conf.rkt     -- The file with basic configuration options (such as what TCP port to listen on).
-* `paths.rkt    -- The file that contains the drawing paths.
-* `threats.rkt	-- The file that contains threat definitions and related functions.
+* `conf.rkt`     -- The file with basic configuration options (such as what TCP port to listen on).
+* `paths.rkt`    -- The file that contains the drawing paths.
+* `threats.rkt`	-- The file that contains threat definitions and related functions.
 * `data/`	-- The directory that has test data. See the `README.md` in `data/` for more info.
   * `README.md`	-- the readme for `data/`, includes instructions on replaying data to our racket TEWS.
   * `rwr_demo.jsonconn`	-- The rwr_demo data, meant to be used for demo purposes. Purposefully includes a large variety of situations to show off the program. See *Videos*, below.
