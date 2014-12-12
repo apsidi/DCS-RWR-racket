@@ -22,6 +22,40 @@ It can be run with
 
 	$ racket -r TEWS.rkt
 
+This starts the program, and a TCP listener on port 6001. 
+
+Files
+-----
+
+* `README.md` and `README.txt` (.txt is a symlink to .md) -- This file.
+* `TEWS.rkt`    -- The file that contains the main loop, and includes the other .rkt files.
+* `classes.rkt` -- The file that contains the `threat%` and `rwr%` classes, and the two main drawing functions, `(draw-threats)`, and `(draw-threatscope)`. 
+* `conf.rkt     -- The file with basic configuration options (such as what TCP port to listen on).
+* `paths.rkt    -- The file that contains the drawing paths.
+* `threats.rkt	-- The file that contains threat definitions and related functions.
+* `data/`	-- The directory that has test data. See the `README.md` in `data/` for more info.
+  * `README.md`	-- the readme for `data/`, includes instructions on replaying data to our racket TEWS.
+  * `rwr_demo.jsonconn`	-- The rwr_demo data, meant to be used for demo purposes. Purposefully includes a large variety of situations to show off the program. See *Videos*, below.
+  * `tews5.jsonconn`	-- This data is associated with the first video that was used for the class project.
+  * `varied.jsonconn`	-- No video is associated with this, but it shows a large variety of radar emitters.
+  * `clean_sweep.jsonconn`	-- This data comes from a (rather poor) playthrough of the "clean sweep" F-15C mission.
+* `docs/`	-- The directory that has documentation, either for the project or the github in general.
+  * `mike_mcginty_fpp.pdf`	-- Mike's project proposal pdf.
+  * `deliverable1.{md,pdf}`	-- Mike's first deliverable in markdown and its PDF output.
+  * `deliverable2.{md,pdf}`	-- Mike's second deliverable in markdown and its PDF output.
+  * `rpi/`	-- Has files associated with the Raspberry Pi
+    * `install.archlinux.md`	-- The installation guide for the RPi, assuming ArchLinuxARM
+* `ref/`	-- This directory contains various reference data from the simulator.
+  * `types.txt` -- This is a quick summary and reference for how DCS does its unit type system.
+  * `fp.txt` 	-- An early set of notes Mike wrote when deciding to do this project.
+  * `symbology.txt`	-- Has some summarized notes from the next two files on how the RWR works.
+  * `DCS_Document_Pack1308.zip`	-- A zip of PDFs describing various aspects of the A-10C RWR. Source: http://www.digitalcombatsimulator.com/en/files/86362/
+  * `F-15C DCS Flaming Cliffs Flight Manual EN.pdf`	-- The PDF manual for DCS F-15C. Source: DCS software.
+  * `RWR-E2.png`	-- I got this from http://wiki.hoggit.us/view/RWR, and used it as a reference when creating our symbol paths in `paths.rkt`
+
+Classes
+-------
+
 The rwr% class, when instantiated, is an object that represents an RWR display.
 A threat% object represents a radar emitter detected by the TEWS system.
 
@@ -101,4 +135,25 @@ One can use the \*.jsonconn files as testdata in the following fashion:
 The above line will take the tews5 data, printing at 10 (-L) lines (-l)
 per second, and give that input to netcat, which will connect to the local
 computer on port 6001 to connect tou the listening racket (which must already
-be running).
+be running). See the readme in `data/` for more info and the test data files themselves.
+
+
+Videos
+======
+
+There are four related videos meant to be used with the `rwr_demo.jsonconn` test data.
+I've uploaded them to youtube for ease of use, these are the URLs:
+	
+* [rwr_demo](http://youtu.be/7T8lflEjdZY)
+* [rwr_demo_outsideview](http://youtu.be/EsSbAvZ5rNQ)
+* [rwr_demo_outsideview_static](http://youtu.be/5JH7kezZhyg)
+* [rwr_demo_rwrdisplay](http://youtu.be/RGiRabwXg6M)
+
+I also have the raw video available, just ask. With a fast enough
+computer, the videos can be played in sync with VLC's input slave
+like this:
+
+	$ vlc rwr_demo.ogv --input-slave=rwr_demo_outsideview.ogv#rwr_demo_outsideview_static.ogv#rwr_demo_rwrdisplay.ogv
+
+
+
