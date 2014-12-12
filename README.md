@@ -53,6 +53,26 @@ Files
   * `F-15C DCS Flaming Cliffs Flight Manual EN.pdf`	-- The PDF manual for DCS F-15C. Source: DCS software.
   * `RWR-E2.png`	-- I got this from http://wiki.hoggit.us/view/RWR, and used it as a reference when creating our symbol paths in `paths.rkt`
 
+
+OPL: How we used class concepts
+-------------------------------
+
+This code was written for a final class project in Organization of Programming Languages, taught by Professor Fred Martin, at UMass Lowell in Fall 2014.
+This class is essentially an introduction to functional languages, taught in Racket (formerly PLT-Scheme). The goal of the project was to write 'real world' code in racket,
+and to focus on applying concepts learned in class. 
+
+You can see our summary page in the [class wiki](http://www.cs.uml.edu/ecg/index.php/OPLfall14/DCS-worldRadar)
+
+As part of the final project, we are to describe how we used class concepts. So here we go.
+
+* `Object Orientation` was used to model the RWR system (rwr%) and threats (threat%).
+* Our main 'loop' uses `tail recursion`.
+* We work with `first-class functions` every time we `map` across a list.
+* We benefit from `local bindings` with `let` and `let\*`.
+* Lists of threats represent our received data.
+* We `sort`, `filter` and `map` across these lists, mostly with local anonymous functions created with `lambda`.
+* A `hash table` stores keys representing unit types to retrieve string values to be shown on the display itself. 
+
 Classes
 -------
 
@@ -62,8 +82,8 @@ A threat% object represents a radar emitter detected by the TEWS system.
 
 DCS World
 --------
-Exports data every .1s.
-lua file must currently be edited to include hostname or ip address of
+Exports data every .1s.\\
+The included Lua file must currently be edited to include hostname or ip address of
 machine running this racket code.
 
 Example line, pretty printed and commented with "#" lines:
