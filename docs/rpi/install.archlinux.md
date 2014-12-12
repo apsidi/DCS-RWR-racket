@@ -24,24 +24,30 @@ elinux.org guide](http://elinux.org/ArchLinux_Install_Guide).
 whole system and install `racket`. This can take a long while because
 of the limited resources of the Pi.
 
+	```
 	pacman -Syu racket
+	```
 
 4. Now, you need to [configure
 autologin.](https://wiki.archlinux.org/index.php/automatic_login_to_virtual_console).
 Follow the linked guide, and compare your results to what worked for me
 (my user name is 'mike'):
 
+	```
 	[mike@alarmpi ~] $ cat /etc/systemd/system/getty\@tty1.service.d/autologin.conf 
 	[Service]
 	ExecStart=
 	ExecStart=-/usr/bin/agetty --autologin mike --noclear %I 38400 linux
 	Type=simple
+	```
 
 5. So now you have a user that automatically logs in. You can now edit
 their `.bash_profile` so that they automatically startx on console
-login. Edit the bottom of .bash_profile, adding this line:
+login. Edit the bottom of `.bash_profile`, adding this line:
 
+	```
 	[[ -z $DISPLAY && $XDG_VTNR -eq 1 ]] && exec startx
+	```
 
 6. The last part of getting this to work (if all is set up correctly) is
 to install Xorg and edit your RPi user's .xinitrc file so that it starts
@@ -54,11 +60,13 @@ the .xinitrc file of the user you have logging in automatically. I
 found it helpful to turn off power saving and screen blanking for X as
 well. For program, I assume you have already cloned the repository down to
 `~/DCS-RWR-racket` on your RPi.
-	
+
+	```
 	[mike@alarmpi ~] $ cat .xinitrc 
 	xset s off
 	xset -dpms
 	cd DCS-RWR-racket; racket -r TEWS.rkt
+	```
 
 That's it! It can take a while on a Raspberry Pi for the display to
 show up, and it uses quite a bit of memory and CPU. I recommend turning
