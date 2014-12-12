@@ -11,9 +11,10 @@ DCS World does not allow for the placement of the F-15's RWR display
 on a second monitor like it does the radar MFD, so this project was
 created to recreate the display based on exported data from the simulator
 over a TCP socket, using a modified version of leonpo's [Android TEWS
-display](http://forums.eagle.ru/showthread.php?t=100057) export.lua to
+display's](http://forums.eagle.ru/showthread.php?t=100057) `export.lua` to
 export the data.
 
+This is hosted on [github](https://github.com/mach327/DCS-RWR-racket).
 
 Overview
 ========
@@ -33,6 +34,7 @@ Files
 * `conf.rkt`     -- The file with basic configuration options (such as what TCP port to listen on).
 * `paths.rkt`    -- The file that contains the drawing paths.
 * `threats.rkt`	-- The file that contains threat definitions and related functions.
+* `mike_exportTWS.lua` -- The file that should be added to DCS under `Scripts/`, and invoked in `export.lua`.
 * `data/`	-- The directory that has test data. See the `README.md` in `data/` for more info.
   * `README.md`	-- the readme for `data/`, includes instructions on replaying data to our racket TEWS.
   * `rwr_demo.jsonconn`	-- The rwr_demo data, meant to be used for demo purposes. Purposefully includes a large variety of situations to show off the program. See *Videos*, below.
